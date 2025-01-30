@@ -32,6 +32,20 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  reactions: [
+    {
+      emoji: {
+        type: String,
+        enum: ["laugh", "thumbsUp", "thumbsDown", "love"],
+        required: true,
+      },
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        required: true,
+      },
+    },
+  ],
 });
 
 const Message = mongoose.model("Messages", messageSchema);

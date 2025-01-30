@@ -69,7 +69,22 @@ uppercase h-10 w-10 text-lg border-[1px] flex items-center justify-center rounde
               </div>
             )}
             {isChannel ? (
-              <span>{contact.name}</span>
+              <div className="flex flex-col">
+                <span className="font-medium text-neutral-200">
+                  {contact.name}
+                </span>
+                <span className="text-xs text-neutral-400 mt-0.5 flex items-center gap-1">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-3 h-3"
+                    fill="currentColor"
+                  >
+                    <path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm18 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-8-4c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z" />
+                  </svg>
+                  {contact.members.length + 1}{" "}
+                  {contact.members.length + 1 === 1 ? "member" : "members"}
+                </span>
+              </div>
             ) : (
               <span>
                 {contact.firstName

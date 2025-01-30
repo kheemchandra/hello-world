@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getMessages, uploadFile } from "../controllers/MessagesController.js";
+import {
+  getMessages,
+  uploadFile,
+  addReaction,
+  removeReaction,
+} from "../controllers/MessagesController.js";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
 
 import multer from "multer";
@@ -14,4 +19,8 @@ messagesRoutes.post(
   upload.single("file"),
   uploadFile
 );
+
+messagesRoutes.post("/reactions", verifyToken, addReaction);
+messagesRoutes.delete("/reactions", verifyToken, removeReaction);
+
 export default messagesRoutes;

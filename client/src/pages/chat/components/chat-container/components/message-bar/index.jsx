@@ -1,12 +1,13 @@
 import { useAppStore } from "@/store";
 import EmojiPicker from "emoji-picker-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { GrAttachment } from "react-icons/gr";
 import { IoSend } from "react-icons/io5";
 import { RiEmojiStickerLine } from "react-icons/ri";
 import { useSocket } from "@/context/SocketContext";
 import { apiClient } from "@/lib/api-client";
 import { UPLOAD_FILE_ROUTE } from "@/utils/constants";
+import debounce from "lodash.debounce";
 
 const MessageBar = () => {
   const emojiRef = useRef();
@@ -23,6 +24,30 @@ const MessageBar = () => {
   const [message, setMessage] = useState("");
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
+  const emitTyping = useCallback(
+    debounce((isTyping) => {
+      if (!socket) return; // Add this check
+
+      if (selectedChatType === "channel" && selectedChatData?._id) {
+        // Add null check
+        socket.emit(isTyping ? "typing-started" : "typing-stopped", {
+          chatId: selectedChatData._id,
+          userId: userInfo.id,
+          username: userInfo.firstName,
+          isChannel: true,
+        });
+      } else if (selectedChatType === "contact" && selectedChatData?._id) {
+        // Add null check
+        socket.emit(isTyping ? "typing-started" : "typing-stopped", {
+          chatId: selectedChatData._id,
+          userId: userInfo.id,
+          isChannel: false,
+        });
+      }
+    }, 300),
+    [selectedChatData, selectedChatType, userInfo, socket] // Add socket to dependencies
+  );
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (emojiRef.current && !emojiRef.current.contains(event.target)) {
@@ -33,11 +58,18 @@ const MessageBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [emojiRef]);
 
+  useEffect(() => {
+    return () => {
+      emitTyping.cancel();
+    };
+  }, [emitTyping]);
+
   const handleAddEmoji = (emoji) => {
     setMessage((msg) => msg + emoji.emoji);
   };
 
   const handleSendMessage = async () => {
+    if (!socket) return;
     if (selectedChatType === "contact") {
       socket.emit("sendMessage", {
         sender: userInfo.id,
@@ -56,6 +88,7 @@ const MessageBar = () => {
       });
     }
     setMessage("");
+    emitTyping(false);
   };
 
   const handleAttachmentClick = () => {
@@ -113,7 +146,16 @@ const MessageBar = () => {
           className="flex-1 p-5 bg-transparent rounded-md focus:border-none focus:outline-none"
           placeholder="Enter Message"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (!socket) return; // Add this check
+
+            if (e.target.value) {
+              emitTyping(true);
+            } else {
+              emitTyping(false);
+            }
+          }}
         />
         <button
           className="text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all"

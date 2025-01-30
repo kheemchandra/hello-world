@@ -94,4 +94,48 @@ export const createChatSlice = (set, get) => ({
     }
     set({ directMessagesContacts: dmContacts });
   },
+
+  // Add to createChatSlice
+  typingUsers: {}, // Stores typing status for DMs and channels
+
+  // Add these new actions
+  setTypingStatus: (chatId, userId, username, isTyping) => {
+    const currentTyping = get().typingUsers;
+    const selectedChatType = get().selectedChatType;
+
+    if (selectedChatType === "channel") {
+      set({
+        typingUsers: {
+          ...currentTyping,
+          [chatId]: isTyping ? { userId, username } : null,
+        },
+      });
+    } else {
+      set({
+        typingUsers: {
+          ...currentTyping,
+          [chatId]: isTyping,
+        },
+      });
+    }
+  },
+
+  clearTypingStatus: (chatId) => {
+    const currentTyping = get().typingUsers;
+    const newTyping = { ...currentTyping };
+    delete newTyping[chatId];
+    set({ typingUsers: newTyping });
+  },
+
+  hoveredMessageId: null,
+
+  setHoveredMessageId: (messageId) => set({ hoveredMessageId: messageId }),
+
+  updateMessageReactions: (messageId, reactions, channelId) => {
+    const messages = get().selectedChatMessages;
+    const updatedMessages = messages.map((msg) =>
+      msg._id === messageId ? { ...msg, reactions } : msg
+    );
+    set({ selectedChatMessages: updatedMessages });
+  },
 });
